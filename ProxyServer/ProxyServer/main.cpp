@@ -5,19 +5,26 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
+// maxsize for our recv buffer
 constexpr auto MAX_BUFFER = 65536;
-char recvBuf[MAX_BUFFER];
+
+// receive buffer
+static char recvBuf[MAX_BUFFER];
 
 int main() {
 
+	// start winsock version 2.2
 	startSocketProgram(2, 2);
 
 	// set up TCP protocol, create socket, bind and listen to it
 	SOCKET serverSock = initServerSocket();
 
+	// receive buffer length
 	int recvLen = 1;
 
+	// client socket we are going to accept
 	SOCKET clientSock = INVALID_SOCKET;
+
 
 	do {
 		clientSock = acceptSocket(serverSock);
@@ -36,8 +43,9 @@ int main() {
 
 	} while (recvLen > 0);
 		
-
+	// close server socket 
 	closeTCPsocket(serverSock);
 
+	// close winsock program, release resources
 	endSocketProgram();
 }

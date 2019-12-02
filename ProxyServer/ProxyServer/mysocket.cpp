@@ -7,8 +7,7 @@ WSADATA startSocketProgram(char mainNum, char minNum) {
 	WSADATA wsaData;
 
 	int iResult;
-	// Initialize Winsock
-	// here is version 2.2
+	// Initialize Winsock with version mainNum.minNum
 	iResult = WSAStartup(MAKEWORD(mainNum, minNum), &wsaData);
 	if (iResult != 0) {
 		printf("WSAStartup failed: %d\n", iResult);
@@ -28,28 +27,8 @@ WSADATA startSocketProgram(char mainNum, char minNum) {
 	return wsaData;
 }
 
-//SOCKET createTCPSocket() {
-//	struct protoent* proto;
-//
-//	string protoName = "tcp";
-//	int protofamily = PF_INET;
-//	int type = SOCK_STREAM;
-//
-//	proto = getprotobyname(protoName.c_str());
-//
-//	SOCKET sock = INVALID_SOCKET;
-//
-//	sock = socket(protofamily, type, proto->p_proto);
-//
-//	if (sock == INVALID_SOCKET)
-//		printf("socket function failed with error = %d\n", WSAGetLastError());
-//	else 
-//		printf("socket successfully opened\n");
-//
-//	return sock;
-//}
-
-SOCKET initSocket2() {
+// this init procedure is old, origin from HIT's lab
+SOCKET initServerSocket2() {
 
 	sockaddr_in ProxyServerAddr;
 	SOCKET listenSocket = INVALID_SOCKET;
@@ -74,7 +53,6 @@ SOCKET initSocket2() {
 	}
 	else
 		printf("socket successfully binded\n");
-
 
 	if (listen(listenSocket, SOMAXCONN) == SOCKET_ERROR) {
 		printf("Listen failed with error: %ld\n", WSAGetLastError());
@@ -154,6 +132,7 @@ SOCKET initServerSocket() {
 	return ListenSocket;
 }
 
+// accept client socket from listenSocket
 SOCKET acceptSocket(SOCKET listenSocket) {
 	SOCKET acceptSock = INVALID_SOCKET;
 	acceptSock = accept(listenSocket, NULL, NULL);
@@ -169,6 +148,7 @@ SOCKET acceptSocket(SOCKET listenSocket) {
 	return acceptSock;
 }
 
+// close TCP socket
 void closeTCPsocket(SOCKET sock) {
 	int iResult = closesocket(sock);
 	if (iResult == SOCKET_ERROR) {
@@ -178,6 +158,7 @@ void closeTCPsocket(SOCKET sock) {
 	}
 }
 
+// end winsock program
 void endSocketProgram() {
 	WSACleanup();
 }

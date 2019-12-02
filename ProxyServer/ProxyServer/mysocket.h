@@ -4,18 +4,20 @@
 #include <ws2tcpip.h>
 #include <stdio.h>
 
-constexpr auto MAXSIZE = 65507; // 发送数据报文的最大长度;
-constexpr auto HTTP_PORT = 80; //  服务器端口;
-constexpr auto SERVER_PORT = "8888"; // 代理端口
+constexpr auto HTTP_PORT = 80;  
+constexpr auto SERVER_PORT = "8888"; 
 
+// start socket program, doing WSAStartup() and check winsock version
 WSADATA startSocketProgram(char mainNum, char minNum);
 
-//SOCKET createTCPSocket();
+// initalize server's socket, set TCP protocol, create socket, bind socket and listen on it
 SOCKET initServerSocket();
-//SOCKET initSocket2();
 
+// close TCP socket
 void closeTCPsocket(SOCKET sock);
 
+// accept client socket from listenSocket
 SOCKET acceptSocket(SOCKET listenSocket);
 
+// end our socket program
 void endSocketProgram();

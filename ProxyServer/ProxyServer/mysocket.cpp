@@ -142,9 +142,9 @@ SOCKET acceptSocket(SOCKET listenSocket) {
 		WSACleanup();
 		return 1;
 	}
-	else {
+	/*else {
 		printf("accept socket\n");
-	}
+	}*/
 	return acceptSock;
 }
 
@@ -156,10 +156,14 @@ void closeTCPsocket(SOCKET sock) {
 		WSACleanup();
 		exit(1);
 	}
+
+	printf("socket is safely cloesd\n");
 }
 
 // end winsock program
 void endSocketProgram() {
 	WSACleanup();
+
+	printf("winsock program is successfully closed\n");
 }
 

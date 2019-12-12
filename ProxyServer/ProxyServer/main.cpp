@@ -27,8 +27,6 @@ int main() {
 	// client socket we are going to accept
 	SOCKET clientSock = INVALID_SOCKET;
 
-	std::cout << std::endl << std::endl;
-
 	do {
 		clientSock = acceptSocket(serverSock);
 
@@ -36,18 +34,15 @@ int main() {
 
 		if (recvLen > 0) {
 
-			//printf("+++++++++++++++++++++++++++++\n");
-			//printf("%s\n", recvBuf);
-			//printf("+++++++++++++++++++++++++++++\n");
-
 			httpParser = new HttpParser();
 			httpParser->parse(recvBuf);
-			
-			//printf("-----------------------------\n");
-			//httpParser->printRequestLine();
-			//httpParser->printHeaderLines();
-			//httpParser->printRequestBody();
-			//printf("-----------------------------\n");
+
+
+			httpParser->printRequestLine();
+
+			auto peerInfo = getpeerInfo(clientSock);
+
+			printf("IP %s\nPort %d\n", getIPfromSockaddr(peerInfo).c_str(), getPortfromSockaddr(peerInfo));
 
 			delete httpParser;
 		}

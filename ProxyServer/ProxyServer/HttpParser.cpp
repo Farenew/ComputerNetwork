@@ -85,27 +85,26 @@ void HttpParser::parse(char* buf) {
 
 	// PARSE ENTIRY BODY
 	// first two characters are \r\n
-	nextToken += 2;
-	entityBody = string(nextToken);
+	if (strlen(nextToken) >= 2) {
+		nextToken += 2;
+		entityBody = string(nextToken);
+	}
+	else
+		entityBody = string();
 }
 
 void HttpParser::printRequestLine() {
 	cout << requesLine.method << " " 
 		<< requesLine.url << " " 
 		<< requesLine.version << std::endl;
-
-	cout << endl;
 }
 
 void HttpParser::printHeaderLines() {
 	for (auto i : headerLines)
 		cout << i.first << ": " << i.second << endl;
-
-	cout << endl;
 }
 
 void HttpParser::printRequestBody() {
 	cout << entityBody;
-
-	cout << endl;
 }
+

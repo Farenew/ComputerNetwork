@@ -1,6 +1,5 @@
 #include "mysocket.h"
 
-
 WSADATA startSocketProgram(char mainNum, char minNum) {
 	WSADATA wsaData;
 
@@ -63,7 +62,6 @@ SOCKET initServerSocket2() {
 
 	return listenSocket;
 }
-
 
 SOCKET initServerSocket() {
 	struct addrinfo protoStat;
@@ -165,6 +163,58 @@ void endSocketProgram() {
 	printf("winsock program is successfully closed\n");
 }
 
+// create local socket and connect to remote host, return local host
+SOCKET connetToRemote(string host) {
+	struct addrinfo *result = NULL, *ptr = NULL, hints;
 
+	ZeroMemory(&hints, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
 
+	int i = getaddrinfo(host.c_str(), HTTP_PORT, &hints, &result);
+	if (i != 0) {
+		printf("getaddrinfo failed with error: %d\n", i);
+		WSACleanup();
+		return 1;
+	}
+
+	SOCKET ConnectSocket = INVALID_SOCKET;
+	for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
+
+		// Create a SOCKET for connecting to server
+		ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
+		if (ConnectSocket == INVALID_SOCKET) {
+			printf("socket failed with error: %ld\n", WSAGetLastError());
+			WSACleanup();
+			return 1;
+		}
+
+		// Connect to server.
+		i = connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
+		// if current ip cannot be connected, then continue
+		if (i == SOCKET_ERROR) {
+			closesocket(ConnectSocket);
+			ConnectSocket = INVALID_SOCKET;
+			continue;
+		}
+
+		// if connected, then break
+		break;
+	}
+
+	// free memory allocated by getaddrinfo
+	freeaddrinfo(result);
+
+	if (ConnectSocket == INVALID_SOCKET) {
+		printf("Unable to connect to server!\n");
+		WSACleanup();
+		return 1;
+	}
+	else {
+		printf("successfully connected to remote host %s\n", host.c_str());
+	}
+
+	return ConnectSocket;
+}
 

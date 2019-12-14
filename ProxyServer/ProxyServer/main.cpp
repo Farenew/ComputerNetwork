@@ -14,7 +14,7 @@ constexpr auto MAX_BUFFER = 65536;
 // receive buffer
 static char recvBuf[MAX_BUFFER];
 
-HttpParser* httpParser;
+HttpParser* hp;
 
 int main() {
 
@@ -28,6 +28,8 @@ int main() {
 	// client socket we are going to accept
 	SOCKET clientSock = INVALID_SOCKET;
 
+	SOCKET connectSocket = INVALID_SOCKET;
+
 	do {
 		clientSock = acceptSocket(serverSock);
 
@@ -35,17 +37,29 @@ int main() {
 
 		if (recvLen > 0) {
 
-			httpParser = new HttpParser();
-			httpParser->parse(recvBuf);
+			hp = new HttpParser();
+			hp->parse(recvBuf);
+
+			hp->printRequestLine();
+			// hp->printHeaderLines();
 
 
-			httpParser->printRequestLine();
+			if (hp->headerLines.find("Host") != hp->headerLines.end()) {
+				connectSocket = connetToRemote(hp->headerLines["Host"]);
+			}
+			else {
+				printf("cannot find host in HTTP request!!!\n");
+				WSACleanup();
+				return 1;
+			}
+			
 
-			auto peerInfo = getpeerInfo(clientSock);
 
-			printf("IP %s\nPort %d\n", getIPfromSockaddr(peerInfo).c_str(), getPortfromSockaddr(peerInfo));
 
-			delete httpParser;
+			// auto peerInfo = getpeerInfo(clientSock);
+			// printf("IP %s\nPort %d\n", getIPfromSockaddr(peerInfo).c_str(), getPortfromSockaddr(peerInfo));
+
+			delete hp;
 		}
 		else if (recvLen == 0)
 			printf("Connection closing...\n");

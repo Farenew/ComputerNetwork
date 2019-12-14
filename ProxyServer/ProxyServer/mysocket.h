@@ -9,6 +9,8 @@
 constexpr auto HTTP_PORT = "80";  
 constexpr auto SERVER_PORT = "8888"; 
 
+using std::string;
+
 // start socket program, doing WSAStartup() and check winsock version
 WSADATA startSocketProgram(char mainNum, char minNum);
 
@@ -24,3 +26,5 @@ SOCKET acceptSocket(SOCKET listenSocket);
 // end our socket program
 void endSocketProgram();
 
+// create local socket and connect to remote host, return local host
+SOCKET connetToRemote(string host);

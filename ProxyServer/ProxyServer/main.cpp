@@ -4,6 +4,7 @@
 
 #include "mysocket.h"
 #include "HttpParser.h"
+#include "SocketTools.h"
 
 #pragma comment(lib, "Ws2_32.lib")
 

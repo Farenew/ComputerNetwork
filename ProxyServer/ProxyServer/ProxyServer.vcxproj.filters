@@ -24,12 +24,18 @@
     <ClCompile Include="HttpParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SocketTools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mysocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HttpParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SocketTools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

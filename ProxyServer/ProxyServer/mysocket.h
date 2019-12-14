@@ -4,8 +4,9 @@
 #include <ws2tcpip.h>
 #include <stdio.h>
 #include <string>
+#include <vector>
 
-constexpr auto HTTP_PORT = 80;  
+constexpr auto HTTP_PORT = "80";  
 constexpr auto SERVER_PORT = "8888"; 
 
 // start socket program, doing WSAStartup() and check winsock version
@@ -20,14 +21,6 @@ void closeTCPsocket(SOCKET sock);
 // accept client socket from listenSocket
 SOCKET acceptSocket(SOCKET listenSocket);
 
-// get peer info from socket
-sockaddr_in getpeerInfo(SOCKET clientSock);
-
 // end our socket program
 void endSocketProgram();
 
-// from sockaddr_in struct get ip 
-std::string getIPfromSockaddr(sockaddr_in& sa);
-
-// from sockaddr_in struct get port
-unsigned getPortfromSockaddr(sockaddr_in& sa);

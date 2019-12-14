@@ -126,10 +126,12 @@
     <ClCompile Include="HttpParser.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mysocket.cpp" />
+    <ClCompile Include="SocketTools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HttpParser.h" />
     <ClInclude Include="mysocket.h" />
+    <ClInclude Include="SocketTools.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

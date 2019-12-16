@@ -7,11 +7,10 @@ using std::endl;
 
 extern constexpr auto MAX_BUFFER = 65536;
 
-// my parse funcion is used to cut a string buffer into buffer and nexttoken
-// this function is similar to strtok_s, except this use delim as a whole
-static char* myParse(char* buffer, const char* delim, char** nexttoken) {
+// newparse is used to split buffer by delim, and return first part as a string, 
+// while second part is wrote into nextToken
+static string newparse(char* buffer, string delim, char **nextToken) {
 	size_t limit = strlen(buffer);
-	size_t dl = strlen(delim);
 	size_t j = 0;
 
 	// use mark to remember the starting point to parse
@@ -21,66 +20,57 @@ static char* myParse(char* buffer, const char* delim, char** nexttoken) {
 		// if our buffer matches delimiator, then continue search to make sure all match
 		if (buffer[i] == delim[0]) {
 			// continue search
-			for (j = 1; j < dl; i++, j++) {
+			for (j = 1; j < delim.size(); i++, j++) {
 				if (buffer[i + 1] != delim[j])
 					break;
 			}
 			// if all match
-			if (j == dl) {
-				// change delimiator into string stop sign
-				for (size_t k = 0; k < dl; k++)
-					buffer[mark + k] = '\0';
+			if (j == delim.size()) {
 				// set nexttoken 
-				*nexttoken = buffer + i + 1;
-				return buffer;
+				*nextToken = buffer + i + 1;
+				
+				return string(buffer, buffer + i - j + 1);
 			}
 		}
 	}
-	return buffer;
+	return string();
 }
 
+// used to parse HTTP head, write into each struct
 void HttpParser::parse(char* buf) {
-	char* line, *nextToken = nullptr;
-	const char* newLine = "\r\n";
+	char *nextToken = nullptr;
+	constexpr auto newLine = "\r\n";
 
 	// PARSE REQUEST LINE
 	// iterate through request line, and parse it by space, store to token
-	line = myParse(buf, newLine, &nextToken);
-	string token;
-	for (unsigned i = 0, cur = 0; i < strlen(line); i++) {
+	auto line = newparse(buf, newLine, &nextToken);
+	int cur = 0;
+	for (unsigned i = 0; i < line.size(); i++) {
 		// cur == 0 means method
-		if (line[i] == ' ' && cur == 0) {
-			requesLine.method = token;
-			cur++;
-			token.clear();
-		}
-		// cur == 1 means url
-		else if (line[i] == ' ' && cur == 1) {
-			requesLine.url = token;
-			cur++;
-			token.clear();
-		}
-		else
-			token += line[i];
-		
+		if (line[i] == ' ' && cur == 0)
+			requesLine.method = line.substr(0, i), cur = i+1;
+		// cur != 0 means url
+		else if (line[i] == ' ' && cur != 0)
+			requesLine.url = line.substr(cur, i-cur+1), cur = i+1;
+
 	}
-	requesLine.version = token;
-	
+	requesLine.version = line.substr(cur, line.size()- cur + 1);
+
+
 	// PARSE REQUEST HEADER
-	const char* colonStop = ": ";
-	char *head, *content;
+	constexpr auto colonStop = ": ";
+	string head;
 	char* curBuf;
 	while (nextToken != nullptr && nextToken[0] != '\r' && nextToken[1] != '\n') {
 		// set current buffer to parse
 		curBuf = nextToken;
 		// extract one line from curBuf
-		line = myParse(curBuf, newLine, &nextToken);
+		line = newparse(curBuf, newLine, &nextToken);
 
-		// parse this line into head and contet
-		head = myParse(line, colonStop, &content);
+		// find position of colonStop
+		int npos = line.find(colonStop);
 
-		// add current parse header into headerLines
-		headerLines.insert({ string(head), string(content) });
+		headerLines.insert({line.substr(0, npos), line.substr(npos+2, line.size()-npos-1)});
 	}
 
 	// PARSE ENTIRY BODY

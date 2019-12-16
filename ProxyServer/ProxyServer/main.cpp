@@ -1,7 +1,6 @@
 
 #include <stdio.h>
 #include <iostream>
-
 #include "mysocket.h"
 #include "HttpParser.h"
 #include "SocketTools.h"
@@ -14,6 +13,9 @@ constexpr auto MAX_BUFFER = 65536;
 // receive buffer
 static char recvBuf[MAX_BUFFER];
 
+// used to store buffer from remote server
+static char remoteBuf[MAX_BUFFER];
+
 HttpParser* hp;
 
 int main() {
@@ -25,12 +27,17 @@ int main() {
 
 	// receive buffer length
 	int recvLen = 1;
+	// remote buffer receive length
+	int remoteRecvLen = 1;
+
 	// client socket we are going to accept
 	SOCKET clientSock = INVALID_SOCKET;
 
 	SOCKET connectSocket = INVALID_SOCKET;
 
+	
 	do {
+		
 		clientSock = acceptSocket(serverSock);
 
 		recvLen = recv(clientSock, recvBuf, MAX_BUFFER, 0);
@@ -41,9 +48,8 @@ int main() {
 			hp->parse(recvBuf);
 
 			hp->printRequestLine();
-			// hp->printHeaderLines();
 
-
+			// make sure our host exists
 			if (hp->headerLines.find("Host") != hp->headerLines.end()) {
 				connectSocket = connetToRemote(hp->headerLines["Host"]);
 			}
@@ -52,12 +58,33 @@ int main() {
 				WSACleanup();
 				return 1;
 			}
-			
 
+			// send buffer message to remote server
+			int i = send(connectSocket, recvBuf, (int)strlen(recvBuf), 0);
+			if (i == SOCKET_ERROR) {
+				printf("send failed: %d\n", WSAGetLastError());
+				closesocket(connectSocket);
+				WSACleanup();
+				return 1;
+			}
 
+			// Receive data until remote server closes the connection
+			do {
+				remoteRecvLen = recv(connectSocket, remoteBuf, MAX_BUFFER, 0);
+				if (remoteRecvLen > 0) {
+					printf("Bytes received: %d\n", remoteRecvLen);
 
-			// auto peerInfo = getpeerInfo(clientSock);
-			// printf("IP %s\nPort %d\n", getIPfromSockaddr(peerInfo).c_str(), getPortfromSockaddr(peerInfo));
+					send(clientSock, remoteBuf, sizeof(remoteBuf), 0);
+				}
+				else if (remoteRecvLen == 0)
+					printf("Connection closed\n");
+				else
+					printf("recv failed: %d\n", WSAGetLastError());
+			} while (remoteRecvLen > 0);
+		
+
+			 //auto peerInfo = getpeerInfo(clientSock);
+			 //printf("IP %s\nPort %d\n", getIPfromSockaddr(peerInfo).c_str(), getPortfromSockaddr(peerInfo));
 
 			delete hp;
 		}

@@ -172,6 +172,7 @@ SOCKET connetToRemote(string host) {
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 
+	// generate addrinfo for further socket creation
 	int i = getaddrinfo(host.c_str(), HTTP_PORT, &hints, &result);
 	if (i != 0) {
 		printf("getaddrinfo failed with error: %d\n", i);

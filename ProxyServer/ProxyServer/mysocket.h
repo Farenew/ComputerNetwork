@@ -28,3 +28,4 @@ void endSocketProgram();
 
 // create local socket and connect to remote host, return local host
 SOCKET connetToRemote(string host);
+

@@ -1,6 +1,8 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <process.h>
+
 #include "mysocket.h"
 #include "HttpParser.h"
 #include "SocketTools.h"
@@ -10,54 +12,92 @@
 // maxsize for our recv buffer
 constexpr auto MAX_BUFFER = 65536;
 
-// receive buffer
+// receive buffer, receive from local client 
 static char recvBuf[MAX_BUFFER];
 
 // used to store buffer from remote server
 static char remoteBuf[MAX_BUFFER];
 
-HttpParser* hp;
+// used to parse http request
+static HttpParser* hp;
+
+// server socket
+SOCKET serverSock;
+
+// declaration of thread program
+unsigned __stdcall threadProxyProgram(void* clientS);
+
+// sock parameter, pass to thread program
+struct socks {
+	SOCKET serverSock;
+	SOCKET clientSock;
+};
 
 int main() {
-
 	// start winsock version 2.2
 	startSocketProgram(2, 2);
 	// set up TCP protocol, create socket, bind and listen to it
-	SOCKET serverSock = initServerSocket();
+	serverSock = initServerSocket();
 
+	HANDLE subprogram;
+
+	while (1) {
+
+		socks* sockPara = new socks;
+
+		// server socket is initialized already
+		sockPara->serverSock = serverSock;
+		// accept client socket
+		sockPara->clientSock = acceptSocket(serverSock);
+
+		if (sockPara->clientSock != INVALID_SOCKET) {
+			// call thread program to process 
+			subprogram = (HANDLE)_beginthreadex(NULL, 0, &threadProxyProgram, (void*)sockPara, 0, 0);
+			CloseHandle(subprogram);
+		}
+		else 
+			printf("cannot accept local call!\n");
+		
+		Sleep(200);
+	}
+		
+	// close server socket 
+	closeTCPsocket(serverSock);
+
+	// close winsock program, release resources
+	endSocketProgram();
+}
+
+// thread program, used to deal with CURRENT SOCKET CONNECTION
+unsigned __stdcall threadProxyProgram(void* sockPara) {
 	// receive buffer length
 	int recvLen = 1;
 	// remote buffer receive length
 	int remoteRecvLen = 1;
 
-	// client socket we are going to accept
-	SOCKET clientSock = INVALID_SOCKET;
-
+	// remote socket to be connected
 	SOCKET connectSocket = INVALID_SOCKET;
 
-	
-	do {
-		
-		clientSock = acceptSocket(serverSock);
+	// build current client socket
+	SOCKET clientSock = ((socks*)sockPara)->clientSock;
 
-		recvLen = recv(clientSock, recvBuf, MAX_BUFFER, 0);
+	// recv data from client socket
+	recvLen = recv(clientSock, recvBuf, MAX_BUFFER, 0);
 
-		if (recvLen > 0) {
+	if (recvLen > 0) {
 
-			hp = new HttpParser();
-			hp->parse(recvBuf);
+		hp = new HttpParser();
+		hp->parse(recvBuf);
 
-			hp->printRequestLine();
+		printf("\n");
 
-			// make sure our host exists
-			if (hp->headerLines.find("Host") != hp->headerLines.end()) {
-				connectSocket = connetToRemote(hp->headerLines["Host"]);
-			}
-			else {
-				printf("cannot find host in HTTP request!!!\n");
-				WSACleanup();
-				return 1;
-			}
+		hp->printRequestLine();
+
+		// make sure our request is HTTP
+		if (hp->requesLine.method == "GET") {
+
+			// connect to remote server
+			connectSocket = connetToRemote(hp->headerLines["Host"]);
 
 			// send buffer message to remote server
 			int i = send(connectSocket, recvBuf, (int)strlen(recvBuf), 0);
@@ -70,36 +110,44 @@ int main() {
 
 			// Receive data until remote server closes the connection
 			do {
+				// receive data from remote connection
 				remoteRecvLen = recv(connectSocket, remoteBuf, MAX_BUFFER, 0);
 				if (remoteRecvLen > 0) {
+
 					printf("Bytes received: %d\n", remoteRecvLen);
 
 					send(clientSock, remoteBuf, sizeof(remoteBuf), 0);
 				}
 				else if (remoteRecvLen == 0)
-					printf("Connection closed\n");
+					printf("remote connection closed\n");
 				else
-					printf("recv failed: %d\n", WSAGetLastError());
+					printf("recv from remote server failed: %d\n", WSAGetLastError());
 			} while (remoteRecvLen > 0);
-		
 
-			 //auto peerInfo = getpeerInfo(clientSock);
-			 //printf("IP %s\nPort %d\n", getIPfromSockaddr(peerInfo).c_str(), getPortfromSockaddr(peerInfo));
 
-			delete hp;
+			// close remote connection
+			closeTCPsocket(connectSocket);
 		}
-		else if (recvLen == 0)
-			printf("Connection closing...\n");
-		else
-			printf("recv failed %d\n", WSAGetLastError());
-
-		Sleep(200);
-
-	} while (recvLen > 0);
 		
-	// close server socket 
-	closeTCPsocket(serverSock);
+		//auto peerInfo = getpeerInfo(clientSock);
+		//printf("IP %s\nPort %d\n", getIPfromSockaddr(peerInfo).c_str(), getPortfromSockaddr(peerInfo));
 
-	// close winsock program, release resources
-	endSocketProgram();
+		delete hp;
+	}
+	else if (recvLen == 0)
+		printf("client connection closed\n");
+	else
+		printf("recv from client socket failed %d\n", WSAGetLastError());
+
+	// close client connection
+	closeTCPsocket(clientSock);
+	// wait
+	Sleep(200);
+	// delete thread parameter to free memory
+	delete (socks*)sockPara;
+
+	// close currnet thread
+	_endthreadex(0);
+
+	return 0;
 }

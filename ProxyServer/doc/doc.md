@@ -1,8 +1,19 @@
 # 文档
 
-- [0. 基础](##0.-基础)
-- [1. 函数和结构](##1.-函数和结构)
-- [2. 流程](##2.-流程)
+- [0. 基础](#0-基础)
+- [1. 函数和结构](#1-函数和结构)
+  - [int WSAStartup(WORD wVersionRequired, LPWSADATA lpWSAData);](#int-wsastartupword-wversionrequired-lpwsadata-lpwsadata)
+  - [int WSACleanup();](#int-wsacleanup)
+  - [sockaddr](#sockaddr)
+  - [getaddrinfo](#getaddrinfo)
+  - [int gethostname(char *name, size_t len);](#int-gethostnamechar-name-size_t-len)
+  - [gethostbyname(), gethostbyaddr()](#gethostbyname-gethostbyaddr)
+  - [getnameinfo()](#getnameinfo)
+  - [getpeername()](#getpeername)
+- [2. 流程](#2-流程)
+- [3. 一些遇到的坑](#3-一些遇到的坑)
+- [4. 实验结果](#4-实验结果)
+
 
 ## 0. 基础
 
@@ -156,4 +167,23 @@ printf("%s\n", hostname);
 2. socket绑定地址和端口: bind的功能就是把当前通信的地址和socket绑定, 这样client通过这个地址进行通信, 就可以连接到当前server的socket上. https://docs.microsoft.com/en-us/windows/win32/winsock/binding-a-socket
 3. 监听socket: https://docs.microsoft.com/en-us/windows/win32/winsock/listening-on-a-socket
 4. server端接收socket连接: https://docs.microsoft.com/en-us/windows/win32/winsock/accepting-a-connection
-5. 
+5. server端连接远程服务器, 完成请求. 在这个步骤里, 我们目前的server又变成了一个client, 远程的服务器变成了server: https://docs.microsoft.com/en-us/windows/win32/winsock/complete-client-code
+
+整个过程大概是:
+
+首先创建一个socket, 用来监听浏览器. 浏览器作为client, 发起请求. 我们构建的socket监听到这个请求, 然后对请求parse. 之后我们连接远程server, 把浏览器的请求发送过去, 并接受数据, 然后回传给浏览器. 也就是说, 在这个过程中, 我们创建的local server的client, 既作为浏览器请求的server, 也作为请求远程服务器的client. 
+
+## 3. 一些遇到的坑
+
+1. 如果无法建立连接, 首先尝试下更换端口号. 
+2. HTTP建立的方法和HTTPS等是不一样的, 而且浏览器会向mozilla, google等发送数据. 这时候可能导致程序崩溃. 目前只能先过滤请求, 把非HTTP请求过滤掉, 但在一些情况下还是会发生错误. 
+
+## 4. 实验结果
+
+以http://info.cern.ch/站点为例进行请求, 这一站点保留了互联网最初的网站, 内容简单, 不会加载很多复杂的js等判断. 因此不易出现奇怪的bug. 
+
+效果如下:
+
+![](Snipaste_2019-12-17_10-39-37.png)
+
+在登陆后还可以进行一些跳转, 都不会出现问题. 证明代理服务器的实现是比较好的. 

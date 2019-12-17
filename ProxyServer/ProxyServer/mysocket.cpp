@@ -152,8 +152,6 @@ void closeTCPsocket(SOCKET sock) {
 		WSACleanup();
 		exit(1);
 	}
-
-	printf("socket is safely cloesd\n");
 }
 
 // end winsock program
@@ -171,6 +169,12 @@ SOCKET connetToRemote(string host) {
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
+
+	if (host.empty()) {
+		printf("Host is empty! cannot find remote server to connect!\n");
+		WSACleanup();
+		exit(1);
+	}
 
 	// generate addrinfo for further socket creation
 	int i = getaddrinfo(host.c_str(), HTTP_PORT, &hints, &result);

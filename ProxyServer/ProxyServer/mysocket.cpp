@@ -79,10 +79,10 @@ SOCKET initServerSocket() {
 	// TCP protocol
 	protoStat.ai_protocol = IPPROTO_TCP;
 
-	// ±íÃ÷ºóĞøÊ¹ÓÃINADDR_ANY
+	// è¡¨æ˜åç»­ä½¿ç”¨INADDR_ANY
 	protoStat.ai_flags = AI_PASSIVE;
 
-	// ÕâÀïÏàµ±ÓÚÓÃgetaddrinfo·â×°³öÒ»¸öaddrinfo½á¹¹µ½resultÀï
+	// è¿™é‡Œç›¸å½“äºç”¨getaddrinfoå°è£…å‡ºä¸€ä¸ªaddrinfoç»“æ„åˆ°resulté‡Œ
 	i = getaddrinfo(NULL, SERVER_PORT, &protoStat, &result);
 	if (i != 0) {
 		printf("getaddrinfo failed: %d\n", i);

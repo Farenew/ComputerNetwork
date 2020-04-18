@@ -93,6 +93,22 @@ unsigned __stdcall threadProxyProgram(void* sockPara) {
 
 		hp->printRequestLine();
 
+
+		// get user IP, we can filter specific user here
+		//auto peerInfo = getpeerInfo(clientSock);
+		//printf("IP %s\nPort %d\n", getIPfromSockaddr(peerInfo).c_str(), getPortfromSockaddr(peerInfo));
+
+
+		// redirect request, we can change our http parser's url to construct new request
+		//
+		//
+
+		// website filter, read http parser to judge if current website should be filtered or not
+		//
+		///
+
+
+
 		// make sure our request is HTTP
 		if (hp->requesLine.method == "GET") {
 
@@ -115,6 +131,7 @@ unsigned __stdcall threadProxyProgram(void* sockPara) {
 				if (remoteRecvLen > 0) {
 
 					printf("Bytes received: %d\n", remoteRecvLen);
+					printf("%s\n", remoteBuf);
 
 					send(clientSock, remoteBuf, sizeof(remoteBuf), 0);
 				}
@@ -129,9 +146,6 @@ unsigned __stdcall threadProxyProgram(void* sockPara) {
 			closeTCPsocket(connectSocket);
 		}
 		
-		//auto peerInfo = getpeerInfo(clientSock);
-		//printf("IP %s\nPort %d\n", getIPfromSockaddr(peerInfo).c_str(), getPortfromSockaddr(peerInfo));
-
 		delete hp;
 	}
 	else if (recvLen == 0)

@@ -176,7 +176,7 @@ printf("%s\n", hostname);
 ## 3. 一些遇到的坑
 
 1. 如果无法建立连接, 首先尝试下更换端口号. 
-2. HTTP建立的方法和HTTPS等是不一样的, 而且浏览器会向mozilla, google等发送数据. 这时候可能导致程序崩溃. 目前只能先过滤请求, 把非HTTP请求过滤掉, 但在一些情况下还是会发生错误. 
+2. HTTP建立的方法和HTTPS等是不一样的, 而且浏览器会向mozilla, google等发送数据. 这时候可能导致程序崩溃. 目前只能先过滤请求, 把非HTTP请求过滤掉, 但在一些情况下还是会发生错误. 关于https等连接方法, 可以参考https://docs.microsoft.com/en-us/windows/win32/winsock/using-secure-socket-extensions
 
 ## 4. 实验结果
 

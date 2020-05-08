@@ -3,6 +3,9 @@
 #include "GBN_program.h"
 #include <string>
 
+#include <fstream>
+#include <sstream>
+
 #pragma comment(lib, "Ws2_32.lib")
 
 // server socket
@@ -12,6 +15,9 @@ using std::cout;
 using std::endl;
 
 const int BUFFER_LENGTH = 1024;
+
+// 测试发送的文件
+auto GBN_TESTING_FILE = "G:/tt.txt";
 
 int main() {
 	// start winsock version 2.2
@@ -30,6 +36,8 @@ int main() {
 
 	int recvSize = 0;
 
+	int i = 0;
+
 	cout << "Receiving datagrams....\n";
 	while (true) {
 		 recvSize = recvfrom(serverSock, buffer, BUFFER_LENGTH, 0,
@@ -40,13 +48,11 @@ int main() {
 			 continue;
 		 }
 
-		 int i = 0;
-		 
 		 cout << "receiving from client:";
 		 cout << buffer << endl;
 
 		 if (strcmp(buffer, "-time") == 0) {
-			 string curTime = getCurTime();
+			 string curTime = get_cur_time();
 			 // 这里sendto的size都做了加一，是为了包括字符串的\0结尾。
 			 i = sendto(serverSock, curTime.c_str(), curTime.size()+1, 0,
 				 (SOCKADDR*)& clientAddr, sizeof(clientAddr));
@@ -54,10 +60,18 @@ int main() {
 		 else if (strcmp(buffer, "-quit") == 0) {
 			 i = sendto(serverSock, "Good Bye!", strlen("Good Bye!")+1, 0,
 				 (SOCKADDR*)& clientAddr, sizeof(clientAddr));
+
+			 closeSocket(serverSock);
+			 endSocketProgram();
+			 return 0;
 		 }
 		 else if (strcmp(buffer, "-testgbn") == 0) {
-			 const std::string fileToSend = "";
-			 GBN_test(serverSock, clientAddr, fileToSend);
+			 // 读文件到ss里面
+			 std::ifstream file(GBN_TESTING_FILE, std::ios_base::in);
+			 std::stringstream ss;
+			 ss << file.rdbuf();
+			
+			 GBN_test(serverSock, clientAddr, ss.str());
 		 }
 		 else {
 			 i = sendto(serverSock, buffer, strlen(buffer)+1, 0,
@@ -71,6 +85,7 @@ int main() {
 			 return 1;
 		 }
 
+		 ZeroMemory(buffer, sizeof(buffer));
 		 Sleep(500);
 	}
 

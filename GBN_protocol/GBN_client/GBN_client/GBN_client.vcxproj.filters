@@ -21,9 +21,15 @@
     <ClCompile Include="mysocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GBN_program.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mysocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GBN_program.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
